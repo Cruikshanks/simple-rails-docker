@@ -3,8 +3,6 @@
 class WelcomeController < ApplicationController
 
   def show
-    data = { message: "Hello world" }
-
-    render json: data.to_json
+    @message = "A Rails and Docker demo project"
   end
 end
