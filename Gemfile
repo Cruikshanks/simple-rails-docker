@@ -33,6 +33,9 @@ gem "sdoc", "~> 0.4.0", group: :doc
 # gem 'capistrano-rails', group: :development
 
 group :development, :test do
+  # Load env vars from a .env file. Critical to managing multiple projects
+  # in local and CI environments
+  gem "dotenv-rails"
   # Call 'binding.pry' anywhere in the code to stop execution and get a debugger console
   gem "pry-byebug"
 end
