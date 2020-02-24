@@ -6,6 +6,10 @@ RUN apt-get update -qq && apt-get install -y nodejs postgresql-client
 COPY entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh
 
+# Control the version of bundler used in the container
+RUN gem install bundler -v 1.17.3 \
+ && bundle config force_ruby_platform true
+
 WORKDIR /usr/src/app
 
 COPY Gemfile Gemfile.lock ./
