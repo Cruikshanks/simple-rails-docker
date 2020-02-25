@@ -21,7 +21,3 @@ environment ENV["RAILS_ENV"] || "production"
 # As we are using ActiveRecord, the default is 5.
 # https://devcenter.heroku.com/articles/concurrency-and-database-connections
 threads 1, 5
-
-# Ensure we are logging to file
-app_dir = File.expand_path("..", __dir__)
-stdout_redirect "#{app_dir}/log/puma.stdout.log", "#{app_dir}/log/puma.stderr.log", true
