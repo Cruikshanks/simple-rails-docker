@@ -37,3 +37,4 @@ LICENSE*
 README.md
 docker-compose.*
 Dockerfile*
+*.Dockerfile
