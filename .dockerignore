@@ -1,0 +1,39 @@
+# Ignore bundler config.
+/.bundle
+
+# Logs & temp files
+log
+tmp
+
+# OS X specific
+.DS_Store
+.AppleDouble
+.LSOverride
+*.log
+.*.swp
+___*
+pkg
+
+# Git
+.git
+.gitignore
+
+# Rails
+coverage
+spec
+test
+**.orig
+/.byebug_history
+
+# Dotenv
+.env*
+
+# Project
+.rubocop.yml
+.ruby-version
+.dockerignore
+.travis.yml
+LICENSE*
+README.md
+docker-compose.*
+Dockerfile*
