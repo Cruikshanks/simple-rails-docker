@@ -1,4 +1,4 @@
-FROM nginx:1.17.8
+FROM nginx:1.17.8-alpine
 
 # Set our working directory inside the image
 WORKDIR /usr/src/app
