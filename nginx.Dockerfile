@@ -28,7 +28,7 @@ EXPOSE 80
 # `--spider`  Behave as a web spider, which means that it will not download the pages
 # `|| exit 1` Healthcheck only expects a a 0 or 1 returned. So force all errors to return 1
 HEALTHCHECK --interval=1m --timeout=3s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://{$SERVER_NAME} || exit 1
+  CMD ["wget", "--quiet", "--tries=1", "--spider", "http://{$SERVER_NAME}", "|| exit 1"]
 
 # Use the "exec" form of CMD so Nginx shuts down gracefully on SIGTERM
 # (i.e. `docker stop`)

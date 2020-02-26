@@ -35,7 +35,7 @@ EXPOSE 3000
 # `--spider`  Behave as a web spider, which means that it will not download the pages
 # `|| exit 1` Healthcheck only expects a a 0 or 1 returned. So force all errors to return 1
 HEALTHCHECK --interval=1m --timeout=3s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:3000/healthcheck || exit 1
+  CMD ["wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/healthcheck", "|| exit 1"]
 
 # This command will always be run, regardless of what is passed in on the cmd
 # line when docker run is called
