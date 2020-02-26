@@ -13,7 +13,7 @@ services:
       context: .
       dockerfile: production.Dockerfile
     volumes:
-      - app_volume:/usr/src/app
+      - public_volume:/usr/src/app/public
     env_file:
       - .env
     ports:
@@ -27,7 +27,7 @@ services:
       args:
         SERVER_NAME: ${NGINX_SERVER_NAME}
     volumes:
-      - app_volume:/usr/src/app
+      - public_volume:/usr/src/app/public
     depends_on:
       - app
     ports:
@@ -35,3 +35,4 @@ services:
 volumes:
   db_volume:
   app_volume:
+  public_volume:

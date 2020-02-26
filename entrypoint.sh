@@ -1,5 +1,6 @@
 #!/bin/bash
-set -e
+
+set -euo pipefail
 
 # Remove a potentially pre-existing server.pid for Rails.
 rm -f /usr/src/app/tmp/pids/server.pid
