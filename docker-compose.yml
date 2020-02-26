@@ -34,5 +34,4 @@ services:
       - 80:80
 volumes:
   db_volume:
-  app_volume:
   public_volume:
