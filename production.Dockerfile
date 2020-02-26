@@ -45,6 +45,4 @@ ENTRYPOINT ["entrypoint.sh"]
 # the command line. In this container what actually happens is that the
 # entrypoint.sh script is run, and it then ensures whatever is set for CMD
 # (whether this default or what is set in docker run) is called afterwards
-# CMD ["rails", "server", "-b", "0.0.0.0"]
-
 CMD ["bundle", "exec", "puma"]
