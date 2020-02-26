@@ -14,7 +14,6 @@ WORKDIR /usr/src/app
 
 # Set rails environment variables
 ENV RAILS_ENV production
-ENV RAILS_SERVE_STATIC_FILES true
 
 COPY Gemfile Gemfile.lock ./
 RUN bundle install --without development test
