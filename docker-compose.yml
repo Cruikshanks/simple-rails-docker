@@ -12,6 +12,8 @@ services:
     build:
       context: .
       dockerfile: production.Dockerfile
+    volumes:
+      - app_volume:/usr/src/app
     env_file:
       - .env
     ports:
@@ -22,9 +24,14 @@ services:
     build:
       context: .
       dockerfile: nginx.Dockerfile
+      args:
+        SERVER_NAME: ${NGINX_SERVER_NAME}
+    volumes:
+      - app_volume:/usr/src/app
     depends_on:
       - app
     ports:
       - 80:80
 volumes:
   db_volume:
+  app_volume:
