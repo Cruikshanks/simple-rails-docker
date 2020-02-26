@@ -1,5 +1,9 @@
 FROM nginx:1.17.8-alpine
 
+# Let folks know who created the image. You might see MAINTAINER <name> in older
+# examples, but this instruction is now deprecated
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
 # Set our working directory inside the image
 WORKDIR /usr/src/app
 

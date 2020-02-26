@@ -2,6 +2,10 @@
 # things installed from the get go)
 FROM ruby:2.4.2-alpine3.7
 
+# Let folks know who created the image. You might see MAINTAINER <name> in older
+# examples, but this instruction is now deprecated
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
 # Set the rails environment variable
 ENV RAILS_ENV production
 
