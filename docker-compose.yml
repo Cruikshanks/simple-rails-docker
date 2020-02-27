@@ -11,7 +11,8 @@ services:
   app:
     build:
       context: .
-      dockerfile: production.Dockerfile
+      dockerfile: Dockerfile
+      target: rails_production
     volumes:
       - public_volume:/usr/src/app/public
     env_file:

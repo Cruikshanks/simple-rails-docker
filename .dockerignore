@@ -20,8 +20,6 @@ pkg
 
 # Rails
 coverage
-spec
-test
 **.orig
 /.byebug_history
 
