@@ -47,30 +47,38 @@ WORKDIR /usr/src/app
 #   then be used to quickly remove them when done with
 RUN apk add --no-cache --virtual build-dependencies build-base ruby-dev postgresql-dev
 
-# Assuming we are in the root of the project, copy all the code (excluding
-# whatever is in .dockerignore) into the current directory (which is WORKDIR)
-COPY . .
-
-# Install gems, generate assets, and clean up afterwards. The clean up was taken
-# from https://thecode.pub/reduce-your-docker-images-an-example-with-ruby-564735f4388c
-#
-# - `bundle install` We specifically don't use the `--without development test`.
-#   This is as a result of reading an article which recommended avoiding doing
-#   so. For the sake of a slightly larger image we have a much more reusable
-#   and cacheable builder stage.
-# - `bundle exec rake assets:precompile` Compiles the assets in /public/assets
+# Install the gems
+# Assuming we are in the root of the project copy the Gemfiles across. By just
+# copying these we'll only cause this image to rebuild if the gemfiles have
+# changed
+COPY Gemfile Gemfile.lock ./
+# We specifically don't use the `--without development test`. This is as a
+# result of reading an article which recommended avoiding doing so. For the sake
+# of a slightly larger image we have a much more reusable and cacheable builder
+# stage.
 # - `rm -rf /usr/src/gems/cache/*.gem` Remove the cache. If anything changes
 #   Docker will rebuild the whole layer so a cache is pointless
 # - `find /usr/src/gems/gems/ -name "*.c" -delete` This and the command that
 #   follows removes any C files used to build the libraries
 RUN bundle install \
- && bundle exec rake assets:precompile \
  && rm -rf /usr/src/gems/cache/*.gem \
  && find /usr/src/gems/gems/ -name "*.c" -delete \
  && find /usr/src/gems/gems/ -name "*.o" -delete
 
+# Pre-compile the assets
+# We start by copying across just the code files we need to run
+# `rake assets:precompile`.
+COPY config/ ./config
+COPY Rakefile .
+# We then copy accross just the assets and public folders. Again like the gems,
+# we only want to rebuild this image if an asset has changed not just because a
+# code file has changed.
+COPY app/assets ./app/assets
+COPY public ./public
+# Compile the assets in /public/assets
+RUN bundle exec rake assets:precompile
+
 # Uninstall those things we added just to be able to run `bundle install`
-#
 # `--no-cache` Same as `add` it stops the index being cached locally
 # `build-dependencies` Virtual name given to a group of packages when installed
 RUN apk del --no-cache build-dependencies
@@ -84,13 +92,18 @@ LABEL maintainer="alan.cruikshanks@gmail.com"
 
 WORKDIR /usr/src/app
 
+# Assuming we are in the root of the project, copy all the code (excluding
+# whatever is in .dockerignore) into the current directory (which is WORKDIR)
+COPY . .
+
+# Remove app code we don't actually need or when the app is run in production,
+# plus the public folder as we're grabbing that out of rails_builder
+RUN rm -rf spec test app/assets vendor/assets lib/assets tmp/cache public
+
 # Copy the gems generated in the rails_builder stage from its image to this one
 COPY --from=rails_builder /usr/src/gems /usr/src/gems
-# Copy the app code in the rails_builder stage from its image to this one
-COPY --from=rails_builder /usr/src/app .
-
-# Remove app code we don't actually need when the app is run in production
-RUN rm -rf spec test app/assets vendor/assets lib/assets tmp/cache
+# Copy the assets in the rails_builder stage from its image to this one
+COPY --from=rails_builder /usr/src/app/public ./public
 
 # Set the rails environment variable
 ENV RAILS_ENV production
