@@ -107,3 +107,33 @@ USER rails
 # entrypoint.sh script is run, and it then ensures whatever is set for CMD
 # (whether this default or what is set in docker run) is called afterwards
 CMD ["bundle", "exec", "puma"]
+
+################################################################################
+# Create nginx
+#
+FROM nginx:1.17.8-alpine AS nginx
+
+# Let folks know who created the image. You might see MAINTAINER <name> in older
+# examples, but this instruction is now deprecated
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
+# Set our working directory inside the image
+WORKDIR /usr/src/app
+
+# Copy the app code in the rails_builder stage from its image to this one
+COPY --from=rails_builder /usr/src/app/public ./public
+
+# Copy Nginx config template
+COPY nginx.conf /tmp/docker.nginx
+
+ARG SERVER_NAME
+
+# Substitute variable references in the Nginx config template for real values
+# from the environment then put the final config in its proper place
+RUN envsubst '$SERVER_NAME' < /tmp/docker.nginx > /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+# Use the "exec" form of CMD so Nginx shuts down gracefully on SIGTERM
+# (i.e. `docker stop`)
+CMD [ "nginx", "-g", "daemon off;" ]
