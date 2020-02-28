@@ -30,5 +30,12 @@ services:
       - app
     ports:
       - 80:80
+  mail:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: mailcatcher
+    ports:
+      - 1080:1080
 volumes:
   db_volume:
