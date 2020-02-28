@@ -31,10 +31,7 @@ services:
     ports:
       - 80:80
   mail:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: mailcatcher
+    image: schickling/mailcatcher
     ports:
       - 1080:1080
 volumes:
