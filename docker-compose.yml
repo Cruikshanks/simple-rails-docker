@@ -10,6 +10,8 @@ services:
       - "54320:5432"
   mail:
     image: schickling/mailcatcher
+    expose:
+      - "1025"
     ports:
       - 1080:1080
   app:
