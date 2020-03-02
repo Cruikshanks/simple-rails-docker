@@ -8,6 +8,10 @@ services:
       POSTGRES_PASSWORD: ${PG_PASSWORD}
     ports:
       - "54320:5432"
+  mail:
+    image: schickling/mailcatcher
+    ports:
+      - 1080:1080
   app:
     build:
       context: .
@@ -19,6 +23,7 @@ services:
       - "3000"
     depends_on:
       - db
+      - mail
   web:
     build:
       context: .
@@ -30,9 +35,5 @@ services:
       - app
     ports:
       - 80:80
-  mail:
-    image: schickling/mailcatcher
-    ports:
-      - 1080:1080
 volumes:
   db_volume:
