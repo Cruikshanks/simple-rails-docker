@@ -98,7 +98,7 @@ COPY . .
 
 # Remove app code we don't actually need or when the app is run in production,
 # plus the public folder as we're grabbing that out of rails_builder
-RUN rm -rf spec test app/assets vendor/assets lib/assets tmp/cache public
+RUN rm -rf spec test app/assets vendor/assets tmp/cache public
 
 # Copy the gems generated in the rails_builder stage from its image to this one
 COPY --from=rails_builder /usr/src/gems /usr/src/gems
