@@ -76,4 +76,21 @@ Rails.application.configure do
 
   # Do not dump schema after migrations.
   config.active_record.dump_schema_after_migration = false
+
+  # Sending e-mails is required for user management and registration e-mails
+  config.action_mailer.default_url_options = { host: config.app_url, protocol: "http" }
+
+  # Don't care if the mailer can't send (if set to false)
+  config.action_mailer.raise_delivery_errors = true
+  config.action_mailer.delivery_method = :smtp
+
+  config.action_mailer.smtp_settings = {
+    user_name: ENV["EMAIL_USERNAME"],
+    password: ENV["EMAIL_PASSWORD"],
+    domain: config.app_url,
+    address: ENV["EMAIL_HOST"],
+    port: ENV["EMAIL_PORT"],
+    authentication: :plain,
+    enable_starttls_auto: true
+  }
 end

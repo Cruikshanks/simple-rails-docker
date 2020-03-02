@@ -24,5 +24,8 @@ module Myapp
     config.active_record.raise_in_transactional_callbacks = true
 
     config.logger = Logger.new(STDOUT)
+
+    # Paths
+    config.app_url = ENV["APP_URL"] || "http://localhost"
   end
 end
