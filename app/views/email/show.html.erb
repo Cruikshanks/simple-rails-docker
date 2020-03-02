@@ -1,0 +1,7 @@
+<h1><%= @message %></h1>
+
+<%= form_tag("/email") do %>
+  <%= label_tag("recipient", "Recipient email address") %>
+  <%= email_field_tag("recipient") %>
+  <%= submit_tag("Send") %>
+<% end %>
