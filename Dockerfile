@@ -1,5 +1,5 @@
 ################################################################################
-# Generate base image stage
+# Generate base ruby stage
 #
 # Use alpine version to help reduce size of image and improve security (less
 # things installed from the get go)
@@ -30,7 +30,7 @@ RUN gem install bundler -v 1.17.3 \
  && bundle config force_ruby_platform true
 
 ################################################################################
-# Install gems and pre-compile assets
+# Install gems and pre-compile assets stage
 #
 FROM rails_base AS rails_builder
 
@@ -84,7 +84,7 @@ RUN bundle exec rake assets:precompile
 RUN apk del --no-cache build-dependencies
 
 ################################################################################
-# Create final production version
+# Create production rails [app] (final stage)
 #
 FROM rails_base AS rails_production
 
@@ -120,7 +120,7 @@ USER rails
 CMD ["bundle", "exec", "puma"]
 
 ################################################################################
-# Create nginx
+# Create production nginx [web] (final stage)
 #
 FROM nginx:1.17.8-alpine AS nginx
 
