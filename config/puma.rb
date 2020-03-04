@@ -6,7 +6,7 @@
 # https://www.digitalocean.com/community/tutorials/how-to-deploy-a-rails-app-with-puma-and-nginx-on-ubuntu-14-04
 
 # HTTP interface
-port 3000
+port ENV["RAILS_PORT"] || 3000
 
 # Do not daemonize the server into the background
 daemonize false
