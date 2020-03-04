@@ -120,6 +120,108 @@ USER rails
 CMD ["bundle", "exec", "puma"]
 
 ################################################################################
+# Create production rails [admin] (final stage)
+#
+# The admin image is only intended to be used for running cron jobs and
+# performing one off tasks such as data migrations. It should not be scaled and
+# only one instance should ever be running.
+#
+FROM rails_base AS rails_admin_production
+
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
+# Adding this package appears to be needed to interact with crontab. Prior to
+# adding this line any calls to crontab e.g. `crontab -l` returned the error
+# `crontab: must be suid to work properly`
+# A stackoverflow post (https://superuser.com/a/1067180) gave adding this as the
+# solution. For reference SUID means
+#
+# > SUID (Set owner User ID up on execution) is a special type of file
+#   permissions given to a file. Normally in Linux/Unix when a program runs, it
+#   inherit’s access permissions from the logged in user. SUID is defined as
+#   giving temporary permissions to a user to run a program/file with the
+#   permissions of the file owner rather that the user who runs it.
+# https://www.linuxnix.com/suid-set-suid-linuxunix/
+#
+# Essentially with crontab we need to access files in /etc which are not
+# accessible to 'normal' users. So crontab sets SUID on its command files to
+# allow a normal user to run them as if they were root. It being Alpine though
+# we have to add the package to support SUID functionality first
+RUN apk add --no-cache busybox-suid
+
+# Install supercronic https://github.com/aptible/supercronic/
+# Supercronic is a crontab-compatible job runner, designed specifically to run
+# in containers. We believe the ideal is actually cron or something like it is
+# used on the host where the container is running to call jobs according to a
+# schedule e.g. `docker exec simple-rails-docker_admin_1 bundle exec rake myjob`
+# We currently use the whenever gem to generate our crontab file.
+#
+# So whilst we familirise ourselves with Docker, and also so we retain some
+# control over how things are done we want to replicate what happens at the
+# moment. This means getting cron working in a Docker container. Cron does not
+# like working in a Docker container!
+#
+# Our main issue appeared to be a need to run as the root user which we
+# have to avoid. Also behaviour such as excluding existing env vars from the
+# running context. A useful security feature on the host, but a pain in a Docker
+# container. Check https://github.com/aptible/supercronic/#why-supercronic for
+# more reasons. But iin summary, we needed an alternative and supercronic fits
+# the bill.
+#
+# Installation steps are as follows
+# - download pre-compiled binary from the site and save as
+#   /usr/local/bin/supercronic
+# - confirm the checksum (Note, the double space between values is intended and
+#   required!)
+# - make the file executable
+# These steps differ from the instructions supercronic provide, only because
+# they rely on curl being installed. Alpine only has wget, and as we have to
+# re-write the instructions to cater for that, we also chose to simplify things
+# further.
+RUN wget -q https://github.com/aptible/supercronic/releases/download/v0.1.9/supercronic-linux-amd64 -O /usr/local/bin/supercronic \
+ && echo "5ddf8ea26b56d4a7ff6faecdd8966610d5cb9d85  /usr/local/bin/supercronic" | sha1sum -c - \
+ && chmod +x /usr/local/bin/supercronic
+
+WORKDIR /usr/src/app
+
+# Assuming we are in the root of the project, copy all the code (excluding
+# whatever is in .dockerignore) into the current directory (which is WORKDIR)
+COPY . .
+
+# Remove app code we don't actually need or when the app is run in production,
+# plus the public folder as we're grabbing that out of rails_builder
+RUN rm -rf spec test app/assets vendor/assets tmp/cache public
+
+# Copy the gems generated in the rails_builder stage from its image to this one
+COPY --from=rails_builder /usr/src/gems /usr/src/gems
+# Copy the assets in the rails_builder stage from its image to this one
+COPY --from=rails_builder /usr/src/app/public ./public
+
+# Set the rails environment variable
+ENV RAILS_ENV production
+
+# Set the rails port variable. We don't expect to start the rails server but
+# just in case ensure it doesn't get confused as an 'app'
+ENV RAILS_PORT 4000
+
+# Generate the crontab file. This contains instructions for the cron(8) daemon
+# in the following simplified manner: "run this command at this time on this
+# date". The only difference is we use supercronic rather than cron.
+# We must call this command before we switch to the rails user in order to have
+# write permissions to create the file
+RUN bundle exec whenever > crontab
+
+# Set the user to rails instead of root. From this point on all commands will
+# be run as the rails user, even when you `docker exec` into the container
+USER rails
+
+# This is the default cmd that will be run if an alternate is not passed in at
+# the command line.
+# Start supercronic passing in our crontab generated by whenever during the
+# build
+CMD ["/usr/local/bin/supercronic", "crontab"]
+
+################################################################################
 # Create production nginx [web] (final stage)
 #
 FROM nginx:1.17.8-alpine AS nginx
