@@ -1,0 +1,52 @@
+{
+  "server": {
+    "applicationConnectors": [
+      {
+        "type": "http",
+        "port": 9002
+      }
+    ],
+    "adminConnectors": [
+      {
+        "type": "http",
+        "port": 9003
+      }
+    ]
+  },
+  "message": "##### RCDP ADDRESSBASE SERVICE STARTING #####",
+  "client-identifier-parameter": "key",
+  "countryDefaultsToThisIfNull": "United Kingdom",
+  "clients": [
+    {
+      "id": 0,
+      "name": "Example Team 1",
+      "key": "client1"
+    },
+    {
+      "id": 1,
+      "name": "Example Team 1. Shares Client 1 Key",
+      "key": "client2"
+    },
+    {
+      "id": 2,
+      "name": "Example Team 3",
+      "key": "client3"
+    }
+  ],
+  "AddressServices": [
+    {
+      "id": 0,
+      "name": "find address",
+      "path": "places/v1/addresses/find"
+    }
+  ],
+  "Suppliers": [
+    {
+      "id": 0,
+      "name": "Ordnance Survey",
+      "active": true,
+      "address": "https://api.ordnancesurvey.co.uk/",
+      "key": "OS_PLACES_KEY"
+    }
+  ]
+}
