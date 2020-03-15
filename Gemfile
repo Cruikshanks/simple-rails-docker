@@ -32,6 +32,10 @@ gem "whenever", "~> 0.10.0"
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development
 
+# Used to handle requests to the address lookup web service used (currently
+# EA Address Facade v1)
+gem "defra_ruby_address"
+
 group :development, :test do
   # Load env vars from a .env file. Critical to managing multiple projects
   # in local and CI environments

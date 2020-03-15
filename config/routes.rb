@@ -5,6 +5,14 @@ Rails.application.routes.draw do
       to: "welcome#show",
       as: "welcome"
 
+  get "/address",
+      to: "address#show",
+      as: "address"
+
+  post "/address",
+       to: "address#create",
+       as: "address_search"
+
   get "/email",
       to: "email#show",
       as: "email"

@@ -1,0 +1,7 @@
+<h1><%= @message %></h1>
+
+<%= form_tag("/address") do %>
+  <%= label_tag("postcode", "Search for postcode") %>
+  <%= text_field_tag("postcode") %>
+  <%= submit_tag("Search") %>
+<% end %>
