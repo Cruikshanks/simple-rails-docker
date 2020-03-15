@@ -23,6 +23,16 @@ services:
       - .env
     depends_on:
       - db
+  address:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: address
+    environment:
+      - OS_PLACES_KEY
+    ports:
+      - "9002:9002"
+      - "9003:9003"
   app:
     build:
       context: .
@@ -35,6 +45,7 @@ services:
     depends_on:
       - db
       - mail
+      - address
   web:
     build:
       context: .
