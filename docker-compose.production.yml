@@ -1,0 +1,36 @@
+version: "3.7"
+
+services:
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: rails_admin
+    env_file:
+      - .env.production
+    depends_on:
+      - db
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: rails_production
+    env_file:
+      - .env.production
+    ports:
+      - "3000"
+    depends_on:
+      - db
+      - mail
+      - address
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: nginx
+      args:
+        SERVER_NAME: ${NGINX_SERVER_NAME}
+    depends_on:
+      - app
+    ports:
+      - "80:80"

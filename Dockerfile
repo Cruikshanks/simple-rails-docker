@@ -30,13 +30,15 @@ RUN gem install bundler -v 1.17.3 \
  && bundle config force_ruby_platform true
 
 ################################################################################
-# Install gems and pre-compile assets stage
+# Install packages needed to support native gem compilation
 #
-FROM rails_base AS rails_builder
+# Use alpine version to help reduce size of image and improve security (less
+# things installed from the get go)
+FROM rails_base AS rails_native_base
 
+# Let folks know who created the image. You might see MAINTAINER <name> in older
+# examples, but this instruction is now deprecated
 LABEL maintainer="alan.cruikshanks@gmail.com"
-
-WORKDIR /usr/src/app
 
 # Install just the things we need to be able to run `bundle install` and compile
 # any gems with native extensions such as Nokogiri
@@ -46,6 +48,15 @@ WORKDIR /usr/src/app
 # `--virtual build-dependencies` Tag the installed packages as a group which can
 #   then be used to quickly remove them when done with
 RUN apk add --no-cache --virtual build-dependencies build-base ruby-dev postgresql-dev
+
+################################################################################
+# Stage used to install gems and pre-compile assets
+#
+FROM rails_native_base AS rails_builder
+
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
+WORKDIR /usr/src/app
 
 # Install the gems
 # Assuming we are in the root of the project copy the Gemfiles across. By just
@@ -83,6 +94,40 @@ RUN bundle exec rake assets:precompile
 # `--no-cache` Same as `add` it stops the index being cached locally
 # `build-dependencies` Virtual name given to a group of packages when installed
 RUN apk del --no-cache build-dependencies
+
+################################################################################
+# Create development rails [app] (final stage)
+#
+FROM rails_native_base AS rails_development
+
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
+WORKDIR /usr/src/app
+
+# Install the gems first
+# Assuming we are in the root of the project copy the Gemfiles across. By just
+# copying these we'll only cause this image to rebuild if the gemfiles have
+# changed. If we did it later, any file change would cause the gems to be
+# re-installed
+COPY Gemfile Gemfile.lock ./
+
+RUN bundle install
+
+# Assuming we are in the root of the project, copy all the code (excluding
+# whatever is in .dockerignore) into the current directory (which is WORKDIR)
+COPY . .
+
+# Set the rails environment variable
+ENV RAILS_ENV development
+
+# Specifiy listening port for the container
+EXPOSE 3000
+
+# This is the default cmd that will be run if an alternate is not passed in at
+# the command line.
+# Use the "exec" form of CMD so rails shuts down gracefully on SIGTERM
+# (i.e. `docker stop`)
+CMD [ "bundle", "exec", "rails", "s", "-b", "0.0.0.0", "-p", "3000" ]
 
 ################################################################################
 # Create production rails [app] (final stage)
@@ -123,13 +168,13 @@ USER app
 CMD [ "bundle", "exec", "puma" ]
 
 ################################################################################
-# Create production rails [admin] (final stage)
+# Create rails [admin] (final stage)
 #
 # The admin image is only intended to be used for running cron jobs and
 # performing one off tasks such as data migrations. It should not be scaled and
 # only one instance should ever be running.
 #
-FROM rails_base AS rails_admin_production
+FROM rails_base AS rails_admin
 
 LABEL maintainer="alan.cruikshanks@gmail.com"
 
