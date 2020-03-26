@@ -111,7 +111,13 @@ WORKDIR /usr/src/app
 # re-installed
 COPY Gemfile Gemfile.lock ./
 
-RUN bundle install
+# There seems to be a known issue that even if puma sits with a :production
+# group in  your Gemfile it will still be used instead of webrick if the gem is
+# installed. Running with Puma is probably fine, but when working in
+# development our expectation is that webrick will be used, and the app will
+# behave as such. So to stick with this convention, we ensure any production
+# only gems are not installed in the development build
+RUN bundle install --without production
 
 # Assuming we are in the root of the project, copy all the code (excluding
 # whatever is in .dockerignore) into the current directory (which is WORKDIR)
