@@ -23,9 +23,10 @@ passenger.*.lock
 passenger.*.pid
 /.byebug_history
 
-# Ignore default dotenv file (.env). Note this won't exclude other variations
-# e.g. .env.test or .env.example
+# Ignore default dotenv file (.env) and our developers local version of it. Note
+# this won't exclude other variations e.g. .env.development or .env.example
 .env
+.env.local
 
 # IDE's and text editors #
 # Ruby mine
