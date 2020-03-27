@@ -14,6 +14,6 @@ set :job_template, nil
 # so only creating cronjobs on that server, otherwise all jobs would be duplicated everyday!
 
 # Send a test email to confirm cron jobs are working
-every 1.minute do
+every 5.minute do
   command "bundle exec rake email:test"
 end
