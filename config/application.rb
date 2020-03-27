@@ -26,6 +26,6 @@ module Myapp
     config.logger = Logger.new(STDOUT)
 
     # Paths
-    config.app_url = ENV["APP_URL"] || "http://localhost"
+    config.app_url = ENV["APP_URL"]
   end
 end

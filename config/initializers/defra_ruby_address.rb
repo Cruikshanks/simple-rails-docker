@@ -3,5 +3,5 @@
 require "defra_ruby/address"
 
 DefraRuby::Address.configure do |config|
-  config.host = "http://address:9002"
+  config.host = ENV["ADDRESS_LOOKUP_URL"]
 end
