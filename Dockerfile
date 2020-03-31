@@ -119,9 +119,23 @@ COPY Gemfile Gemfile.lock ./
 # only gems are not installed in the development build
 RUN bundle install --without production
 
-# Assuming we are in the root of the project, copy all the code (excluding
-# whatever is in .dockerignore) into the current directory (which is WORKDIR)
-COPY . .
+# Leaving as documentation as to why we don't do `COPY . .` in development.
+#
+# In the development build we want to provide an environment where development
+# can take place but the user/developer does not have to install anything
+# locally if that is the workflow they choose to use.
+#
+# Instead if you were to run this container you would be expected to bind mount
+# a local folder to the container when it ran https://docs.docker.com/storage/bind-mounts/
+#
+# Because we intend to use Compose in most cases, this project's development
+# docker-compose.yml (docker-compose.development.yml) handles setting up the
+# bind mount.
+#
+# This means when the container is run, the current directory is shared with the
+# running container, and means we can do things like editing files locally and
+# see the changes in the running instance in the development container.
+# COPY . .
 
 # Set the rails environment variable
 ENV RAILS_ENV development

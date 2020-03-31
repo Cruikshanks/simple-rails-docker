@@ -6,6 +6,8 @@ services:
       context: .
       dockerfile: Dockerfile
       target: rails_development
+    volumes:
+      - ./:/usr/src/app
     env_file:
       - .env.development
     ports:
