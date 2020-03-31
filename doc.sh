@@ -110,6 +110,15 @@ generate_stop_cmd() {
   fi
 }
 
+generate_restart_cmd() {
+  if [[ -z "${service}"  ]]; then
+    # If service arg is empty
+    echo "${project_cmd} restart"
+  else
+    echo "${project_cmd} restart ${service} ${cmd}"
+  fi
+}
+
 generate_ps_cmd() {
   echo "${project_cmd} ps -a"
 }
@@ -165,6 +174,8 @@ execute_action() {
     exec_cmd="$(generate_down_cmd)"
   elif [[ "$action" == "stop" ]]; then
     exec_cmd="$(generate_stop_cmd)"
+  elif [[ "$action" == "restart" ]]; then
+    exec_cmd="$(generate_restart_cmd)"
   elif [[ "$action" == "run" ]]; then
     exec_cmd="$(generate_run_cmd)"
   elif [[ "$action" == "exec" ]]; then
@@ -229,14 +240,15 @@ help_text() {
   echo "  dev   (won't use load balancer, RAILS_ENV is development)"
   echo "  prod  (Uses load balancer, starts multiple app instances, RAILS_ENV is production)"
   echo "Valid actions:"
-  echo "  build (build the images)"
-  echo "  ps    (list all containers)"
-  echo "  up    (execute the containers)"
-  echo "  down  (stop and remove the containers)"
-  echo "  stop  (stop the running containers. Add [service] to stop just one)"
-  echo "  run   (run one time command against new service. Needs [service] and [cmd] args)"
-  echo "  exec  (execute one time command against existing service. Needs [service] and [cmd] args)"
-  echo "  prep  (create db and run migrations N.B. not a docker command)"
+  echo "  build   (build the images)"
+  echo "  ps      (list all containers)"
+  echo "  up      (execute the containers)"
+  echo "  down    (stop and remove the containers)"
+  echo "  stop    (stop the running containers. Add [service] to stop just one)"
+  echo "  restart (restart the running container. Add [service] to restart just one)"
+  echo "  run     (run one time command against new service. Needs [service] and [cmd] args)"
+  echo "  exec    (execute one time command against existing service. Needs [service] and [cmd] args)"
+  echo "  prep    (create db and run migrations N.B. not a docker command)"
   echo ""
   echo "Note. Exception is when nuking environment. Example: ./doc.sh nuke"
 }
