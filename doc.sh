@@ -137,6 +137,12 @@ generate_prep_cmd() {
   echo "${project_cmd} exec --index=1 app /bin/sh -c \"bundle exec rake db:create && bundle exec rake db:migrate\""
 }
 
+generate_dive_cmd() {
+  # As our ruby images are based on alpine bash is not installed so instead we
+  # open the shell directly in the container
+  echo "${project_cmd} exec --index=1 ${service} /bin/sh"
+}
+
 # Attempt to run the command if we don't recogise it. When referencing a
 # particular environment we need to specify the project name and ovveride file.
 # But there are definately commands we have not covered so this allows anyone
@@ -182,6 +188,8 @@ execute_action() {
     exec_cmd="$(generate_exec_cmd)"
   elif [[ "$action" == "prep" ]]; then
     exec_cmd="$(generate_prep_cmd)"
+  elif [[ "$action" == "dive" ]]; then
+    exec_cmd="$(generate_dive_cmd)"
   else
     echo "Don't recognise action: ${action}. Will try it anyway!"
     exec_cmd="$(generate_unknown_cmd)"
@@ -248,7 +256,8 @@ help_text() {
   echo "  restart (restart the running container. Add [service] to restart just one)"
   echo "  run     (run one time command against new service. Needs [service] and [cmd] args)"
   echo "  exec    (execute one time command against existing service. Needs [service] and [cmd] args)"
-  echo "  prep    (create db and run migrations N.B. not a docker command)"
+  echo "  prep    (create db and run migrations. * Not a docker command *)"
+  echo "  dive    (access a running container. Useful for debug. * Not a docker command *)"
   echo ""
   echo "Note. Exception is when nuking environment. Example: ./doc.sh nuke"
 }
