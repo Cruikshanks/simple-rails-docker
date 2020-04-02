@@ -140,6 +140,12 @@ RUN bundle install --without production
 # Set the rails environment variable
 ENV RAILS_ENV development
 
+# When the app is run in a container we need the logs to be written to STDOUT
+# and not the default of log/production.log. The app doesn't really care about
+# the value of the env var, simply that it exists. If it does the app will set
+# its logger to use STDOUT.
+ENV LOG_TO_STDOUT 1
+
 # Specifiy listening port for the container
 EXPOSE 3000
 
@@ -173,6 +179,12 @@ COPY --from=rails_builder /usr/src/app/public ./public
 
 # Set the rails environment variable
 ENV RAILS_ENV production
+
+# When the app is run in a container we need the logs to be written to STDOUT
+# and not the default of log/production.log. The app doesn't really care about
+# the value of the env var, simply that it exists. If it does the app will set
+# its logger to use STDOUT.
+ENV LOG_TO_STDOUT 1
 
 # Specifiy listening port for the container
 EXPOSE 3000
@@ -267,6 +279,12 @@ COPY --from=rails_builder /usr/src/app/public ./public
 
 # Set the rails environment variable
 ENV RAILS_ENV production
+
+# When the app is run in a container we need the logs to be written to STDOUT
+# and not the default of log/production.log. The app doesn't really care about
+# the value of the env var, simply that it exists. If it does the app will set
+# its logger to use STDOUT.
+ENV LOG_TO_STDOUT 1
 
 # Set the rails port variable. We don't expect to start the rails server but
 # just in case ensure it doesn't get confused as an 'app'
