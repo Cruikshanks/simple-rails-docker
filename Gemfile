@@ -42,6 +42,8 @@ group :development, :test do
   gem "dotenv-rails"
   # Call 'binding.pry' anywhere in the code to stop execution and get a debugger console
   gem "pry-byebug"
+  # Project uses RSpec as its test framework
+  gem "rspec-rails", "~> 3.8"
 end
 
 group :development do
@@ -50,6 +52,14 @@ group :development do
 
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem "spring"
+end
+
+group :test do
+  # Database Cleaner is a set of strategies for cleaning your database in Ruby.
+  gem "database_cleaner"
+  # Generates a test coverage report on every `bundle exec rspec` call. We use
+  # the output to feed CodeClimate's stats and analysis
+  gem "simplecov", "~> 0.17.1", require: false
 end
 
 group :production do
