@@ -30,15 +30,13 @@ RUN gem install bundler -v 1.17.3 \
  && bundle config force_ruby_platform true
 
 ################################################################################
-# Install packages needed to support native gem compilation
+# Stage used to install gems and pre-compile assets
 #
-# Use alpine version to help reduce size of image and improve security (less
-# things installed from the get go)
-FROM rails_base AS rails_native_base
+FROM rails_base AS rails_builder
 
-# Let folks know who created the image. You might see MAINTAINER <name> in older
-# examples, but this instruction is now deprecated
 LABEL maintainer="alan.cruikshanks@gmail.com"
+
+WORKDIR /usr/src/app
 
 # Install just the things we need to be able to run `bundle install` and compile
 # any gems with native extensions such as Nokogiri
@@ -48,15 +46,6 @@ LABEL maintainer="alan.cruikshanks@gmail.com"
 # `--virtual build-dependencies` Tag the installed packages as a group which can
 #   then be used to quickly remove them when done with
 RUN apk add --no-cache --virtual build-dependencies build-base ruby-dev postgresql-dev
-
-################################################################################
-# Stage used to install gems and pre-compile assets
-#
-FROM rails_native_base AS rails_builder
-
-LABEL maintainer="alan.cruikshanks@gmail.com"
-
-WORKDIR /usr/src/app
 
 # Install the gems
 # Assuming we are in the root of the project copy the Gemfiles across. By just
@@ -98,26 +87,14 @@ RUN apk del --no-cache build-dependencies
 ################################################################################
 # Create development rails [app] (final stage)
 #
-FROM rails_native_base AS rails_development
+FROM rails_base AS rails_development
 
 LABEL maintainer="alan.cruikshanks@gmail.com"
 
 WORKDIR /usr/src/app
 
-# Install the gems first
-# Assuming we are in the root of the project copy the Gemfiles across. By just
-# copying these we'll only cause this image to rebuild if the gemfiles have
-# changed. If we did it later, any file change would cause the gems to be
-# re-installed
-COPY Gemfile Gemfile.lock ./
-
-# There seems to be a known issue that even if puma sits with a :production
-# group in  your Gemfile it will still be used instead of webrick if the gem is
-# installed. Running with Puma is probably fine, but when working in
-# development our expectation is that webrick will be used, and the app will
-# behave as such. So to stick with this convention, we ensure any production
-# only gems are not installed in the development build
-RUN bundle install --without production
+# Copy the gems generated in the rails_builder stage from its image to this one
+COPY --from=rails_builder /usr/src/gems /usr/src/gems
 
 # Leaving as documentation as to why we don't do `COPY . .` in development.
 #
@@ -149,11 +126,69 @@ ENV LOG_TO_STDOUT 1
 # Specifiy listening port for the container
 EXPOSE 3000
 
+# Script that will ensure db:create and db:migrate is run before we attempt to
+# run our app. This should ensure the container runs successfully the first
+# time it's created, and everytime after that.
+ENTRYPOINT [ "./entrypoint.sh" ]
+
 # This is the default cmd that will be run if an alternate is not passed in at
 # the command line.
 # Use the "exec" form of CMD so rails shuts down gracefully on SIGTERM
 # (i.e. `docker stop`)
 CMD [ "bundle", "exec", "rails", "s", "-b", "0.0.0.0", "-p", "3000" ]
+
+################################################################################
+# Create test rails [app] (final stage)
+#
+FROM rails_base AS rails_test
+
+LABEL maintainer="alan.cruikshanks@gmail.com"
+
+WORKDIR /usr/src/app
+
+# Copy the gems generated in the rails_builder stage from its image to this one
+COPY --from=rails_builder /usr/src/gems /usr/src/gems
+
+# Leaving as documentation as to why we don't do `COPY . .` in development.
+#
+# In the development build we want to provide an environment where development
+# can take place but the user/developer does not have to install anything
+# locally if that is the workflow they choose to use.
+#
+# Instead if you were to run this container you would be expected to bind mount
+# a local folder to the container when it ran https://docs.docker.com/storage/bind-mounts/
+#
+# Because we intend to use Compose in most cases, this project's development
+# docker-compose.yml (docker-compose.development.yml) handles setting up the
+# bind mount.
+#
+# This means when the container is run, the current directory is shared with the
+# running container, and means we can do things like editing files locally and
+# see the changes in the running instance in the development container.
+# COPY . .
+
+# Set the rails environment variable
+ENV RAILS_ENV test
+
+# Don't log to STDOUT
+# Unlike the other stages we don't want Rails logging to STDOUT when it does the
+# output gets mixed up with Rspec's and makes it unreadble
+# ENV LOG_TO_STDOUT 1
+
+# This container is purely for running unit tests. So we have no need to send
+# requests to the app
+# EXPOSE 3000
+
+# Script that will ensure db:create and db:migrate is run before we attempt to
+# run our app. This should ensure the container runs successfully the first
+# time it's created, and everytime after that.
+ENTRYPOINT [ "./entrypoint.sh" ]
+
+# This is the default cmd that will be run if an alternate is not passed in at
+# the command line.
+# Use the "exec" form of CMD so rspec shuts down gracefully on SIGTERM
+# (i.e. `docker stop`)
+CMD [ "bundle", "exec", "rspec" ]
 
 ################################################################################
 # Create production rails [app] (final stage)

@@ -159,6 +159,8 @@ determine_environment() {
     override_file=""
   elif [[ "$environment" == "dev" ]]; then
     override_file="docker-compose.development.yml"
+  elif [[ "$environment" == "test" ]]; then
+    override_file="docker-compose.test.yml"
   elif [[ "$environment" == "prod" ]]; then
     override_file="docker-compose.production.yml"
   else
@@ -238,15 +240,16 @@ nuke() {
   exec docker system prune -a --volumes
 }
 
-# What we display if you pass in less than 2 args (our minimum for nearly all)
-# commands, and that args is not `nuke`
+# What we display if you pass in less than 2 args (our minimum for nearly all
+# commands), and that args is not `nuke`
 help_text() {
   echo "Needs at least 2 arguments [environment] [action]"
   echo "Example: ./doc.sh dev up"
   echo "Valid environments are:"
-  echo "  local (will only start services like db, address)"
-  echo "  dev   (won't use load balancer, RAILS_ENV is development)"
-  echo "  prod  (Uses load balancer, starts multiple app instances, RAILS_ENV is production)"
+  echo "  local   (will only start services like db, address)"
+  echo "  dev     (won't use load balancer, RAILS_ENV is development)"
+  echo "  test    (won't use load balancer, RAILS_ENV is test, defaults to running unit tests not the app)"
+  echo "  prod    (Uses load balancer, starts multiple app instances, RAILS_ENV is production)"
   echo "Valid actions:"
   echo "  build   (build the images)"
   echo "  ps      (list all containers)"
