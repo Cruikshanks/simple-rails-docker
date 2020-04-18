@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
       target: rails_admin
     env_file:
-      - .env.production
+      - ./env/.env.production
     depends_on:
       - db
   app:
@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
       target: rails_production
     env_file:
-      - .env.production
+      - ./env/.env.production
     ports:
       - "3000"
     depends_on:

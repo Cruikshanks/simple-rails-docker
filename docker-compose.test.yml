@@ -9,7 +9,7 @@ services:
     volumes:
       - ./:/usr/src/app
     env_file:
-      - .env.test
+      - ./env/.env.test
     depends_on:
       - db
       - mail

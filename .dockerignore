@@ -25,6 +25,7 @@ coverage
 
 # Dotenv
 .env*
+env
 
 # Project
 .rubocop.yml
