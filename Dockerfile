@@ -359,8 +359,8 @@ WORKDIR /usr/src/app
 # Copy the app assets in the rails_builder stage from its image to this one
 COPY --from=rails_builder /usr/src/app/public ./public
 
-# Copy our Nginx config template
-COPY nginx.conf /tmp/docker.nginx
+# Copy our Nginx default config template
+COPY nginx/default.conf /tmp/default.conf
 
 # Like an env var, but used when building the image rather than when running
 # the container. So this would need to be in the shell, provided on the cmd line
@@ -369,7 +369,7 @@ ARG SERVER_NAME
 
 # Substitute variable references in the Nginx config template for real values
 # from the environment then put the final config in its proper place
-RUN envsubst '$SERVER_NAME' < /tmp/docker.nginx > /etc/nginx/conf.d/default.conf
+RUN envsubst '$SERVER_NAME' < /tmp/default.conf > /etc/nginx/conf.d/default.conf
 
 # In order to run Nginx as a non-root user you need to ensure it has ownership
 # of everthing in our working directory (where we have copied our assets) plus
