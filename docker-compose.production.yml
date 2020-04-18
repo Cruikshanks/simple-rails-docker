@@ -29,8 +29,8 @@ services:
       dockerfile: Dockerfile
       target: nginx
       args:
-        SERVER_NAME: ${NGINX_SERVER_NAME}
+        SERVER_NAME: localhost
     depends_on:
       - app
     ports:
-      - "80:80"
+      - "80:8080"

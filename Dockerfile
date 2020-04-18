@@ -356,19 +356,53 @@ LABEL maintainer="alan.cruikshanks@gmail.com"
 # Set our working directory inside the image
 WORKDIR /usr/src/app
 
-# Copy the app code in the rails_builder stage from its image to this one
+# Copy the app assets in the rails_builder stage from its image to this one
 COPY --from=rails_builder /usr/src/app/public ./public
 
-# Copy Nginx config template
+# Copy our Nginx config template
 COPY nginx.conf /tmp/docker.nginx
 
+# Like an env var, but used when building the image rather than when running
+# the container. So this would need to be in the shell, provided on the cmd line
+# or as in our case via the docker-compose file
 ARG SERVER_NAME
 
 # Substitute variable references in the Nginx config template for real values
 # from the environment then put the final config in its proper place
 RUN envsubst '$SERVER_NAME' < /tmp/docker.nginx > /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+# In order to run Nginx as a non-root user you need to ensure it has ownership
+# of everthing in our working directory (where we have copied our assets) plus
+# a few other key files used by it
+# https://www.rockyourcode.com/run-docker-nginx-as-non-root-user/
+RUN touch /var/run/nginx.pid && \
+  chown -R nginx:nginx . && chmod -R 755 . && \
+  chown -R nginx:nginx /var/run/nginx.pid && \
+  chown -R nginx:nginx /var/cache/nginx && \
+  chown -R nginx:nginx /var/log/nginx && \
+  chown -R nginx:nginx /etc/nginx/conf.d
+
+# You can't have nginx listening on a port below 1024 because only the root user
+# can access them. That's why we listen on port 8080. There is nothing to stop
+# us forwarding port 80 on the host though to port 8080, so we'll still be able
+# to request our app at http://localhost
+EXPOSE 8080
+
+# Set the user to nginx instead of root. From this point on all commands will
+# be run as the app user, even when you `docker exec` into the container.
+# The official Nginx image creates an nginx user, hence we haven't needed to
+# create one in our Dockerfile
+#
+# NOTE. This will lead to a warning in the Docker output
+#
+#   2020/04/18 23:32:28 [warn] 1#1: the "user" directive makes sense only if the master process runs with super-user privileges, ignored in /etc/nginx/nginx.conf:2
+#
+# This is fine. We could remove it by retaining our own version of the
+# nginx.conf file, removing the `user  nginx;` line, and then copying that
+# across. But it seems pointless to maintain a copy of what is a copy of default
+# file Nginx provides with just one line removed in order to avoid a single
+# warning
+USER nginx
 
 # Use the "exec" form of CMD so Nginx shuts down gracefully on SIGTERM
 # (i.e. `docker stop`)
