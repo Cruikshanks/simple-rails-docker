@@ -359,8 +359,17 @@ WORKDIR /usr/src/app
 # Copy the app assets in the rails_builder stage from its image to this one
 COPY --from=rails_builder /usr/src/app/public ./public
 
-# Copy our Nginx default config template
-COPY nginx/default.conf /tmp/default.conf
+# Copy our Nginx config across to the image
+#
+# As nginx.conf doesn't require any variable substitution we can copy it
+# directly over the existing file
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+# We need to substitute the text `$SERVER_NAME` in our default.conf with the ARG
+# server_name provided at build time. We do this as a 2 step process
+# - copy out config as a template to tmp
+# - later RUN envsubst and update the template, then copy that file to
+#   /etc/nginx/conf.d/default.conf
+COPY ./nginx/default.conf /tmp/default.conf
 
 # Like an env var, but used when building the image rather than when running
 # the container. So this would need to be in the shell, provided on the cmd line
